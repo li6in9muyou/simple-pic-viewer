@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Simple Pic Viewer</title>
+    <link rel="stylesheet" href="css/bootstrap.css" />
+    <script src="js/bootstrap.js"></script>
+    <script src="js/jquery.js"></script>
+    <style>
+      .panels {
+        position: relative;
+        transition: left 0.5s;
+        width: 300vw;
+        overflow-x: hidden;
+        display: flex;
+        left: 0;
+      }
+
+      .panel {
+        width: 100vw;
+      }
+
+      nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      body {
+        overflow-x: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="bg-body-tertiary container-fluid p-2 fixed-top">
+      <button class="btn btn-secondary" data-nav-left>向左</button>
+      <div class="spinner-border d-none" role="status"></div>
+      <button class="btn btn-primary" data-nav-right>向右</button>
+    </nav>
+    <main class="panels">
+      <section class="panel p-2">
+        <div class="container text-center py-4">
+          <label for="host-input">输入后端地址：</label>
+          <input type="text" name="host-input" id="host-input" />
+        </div>
+      </section>
+      <section class="panel p-2">
+        <h2>dirs page</h2>
+        <div class="list-group" data-dirs-list></div>
+      </section>
+      <section class="panel p-2">
+        <h2>pics page</h2>
+        <div class="d-flex flex-column gap-1" data-pics-list></div>
+      </section>
+    </main>
+  </body>
+
+  <script>
+    const START = "START";
+    const DIR = "DIR";
+    const PIC = "PIC";
+    const state = {
+      host: "http://localhost:13333/",
+      dir: null,
+      current: START,
+    };
+  </script>
+
+  <script>
+    const $hostInput = $("#host-input");
+    $hostInput.val(state.host ?? "");
+    const $spinner = $(".spinner-border");
+    const $dirList = $("[data-dirs-list]");
+    const $picList = $("[data-pics-list]");
+    const $panels = $(".panels");
+    $panels.css("padding-top", $("nav").outerHeight());
+    const PANEL_W = $panels.outerWidth() / 3;
+
+    function panelShiftRight() {
+      const current = parseInt($panels.css("left")) || 0;
+      if (current <= -PANEL_W * 2) {
+        return;
+      }
+      $panels.css("left", `${current - PANEL_W}px`);
+    }
+
+    function panelShiftLeft() {
+      const current = parseInt($panels.css("left")) || 0;
+      if (current >= 0) {
+        return;
+      }
+      $panels.css("left", `${current + PANEL_W}px`);
+    }
+  </script>
+
+  <script>
+    $dirList.on("click", (e) => {
+      e.preventDefault();
+      const $link = $(e.target);
+      $link.addClass("active").siblings().removeClass("active");
+      state.dir = $link.attr("href");
+    });
+
+    $("[data-nav-right]").on("click", () => {
+      switch (state.current) {
+        case START:
+          $spinner.removeClass("d-none");
+          fetchDirs()
+            .then((data) => {
+              $dirList.html("");
+              data.forEach((item) => {
+                $dirList.append(
+                  $(
+                    `<a href="${item.path}" class="list-group-item list-group-item-action">${item.path}</a>`,
+                  ),
+                );
+              });
+              const $a = $dirList.children().eq(0);
+              $a.addClass("active");
+              state.dir = $a.attr("href");
+            })
+            .then(() => {
+              panelShiftRight();
+              $spinner.addClass("d-none");
+              state.current = DIR;
+            });
+          break;
+        case DIR:
+          $spinner.removeClass("d-none");
+          console.assert(
+            state.dir !== null,
+            "dir page shifting right, but state.dir is null",
+          );
+          fetchPics()
+            .then((data) => {
+              data.forEach((item) =>
+                $picList.append(
+                  $(
+                    `<img src="${state.host}${state.dir}${item.path}" alt="awesome pic"/>`,
+                  ),
+                ),
+              );
+            })
+            .then(() => {
+              panelShiftRight();
+              $spinner.addClass("d-none");
+              state.current = PIC;
+            });
+          break;
+        case PIC:
+          // ignored
+          break;
+        default:
+          console.warn(`unhandled shift right ${state.current}`);
+          break;
+      }
+    });
+
+    $("[data-nav-left]").on("click", () => {
+      switch (state.current) {
+        case DIR:
+          state.current = START;
+          state.dir = null;
+          panelShiftLeft();
+          break;
+        case PIC:
+          state.current = DIR;
+          panelShiftLeft();
+          break;
+        case START:
+          // ignored
+          break;
+        default:
+          console.warn(`unhandled shift right ${state.current}`);
+          break;
+      }
+    });
+  </script>
+
+  <script>
+    /**
+     * @returns {Promise<{path:string}[]>}
+     */
+    function fetchDirs() {
+      return new Promise((resolve) => {
+        setTimeout(
+          () =>
+            resolve([
+              { path: "2024-02-09/" },
+              { path: "2024-02-08/" },
+              { path: "2024-02-07/" },
+            ]),
+          500,
+        );
+      });
+    }
+
+    const respText =
+      '<li><a href="21-14-30.663.jpeg">21-14-30.663.jpeg</a></li>\n' +
+      '<li><a href="21-15-11.649.jpeg">21-15-11.649.jpeg</a></li>\n' +
+      '<li><a href="21-15-52.647.jpeg">21-15-52.647.jpeg</a></li>\n' +
+      '<li><a href="21-16-33.640.jpeg">21-16-33.640.jpeg</a></li>\n' +
+      '<li><a href="21-17-14.633.jpeg">21-17-14.633.jpeg</a></li>\n' +
+      '<li><a href="21-17-55.668.jpeg">21-17-55.668.jpeg</a></li>';
+
+    function parseResp(text) {
+      return Array.from(text.matchAll(/href="([^"]+)"/g)).map((m) => ({
+        path: m[1],
+      }));
+    }
+
+    /**
+     * @returns {Promise<{path:string}[]>}
+     */
+    function fetchPics() {
+      return new Promise((resolve) => {
+        setTimeout(() => resolve(parseResp(respText)), 500);
+      });
+    }
+  </script>
+</html>
