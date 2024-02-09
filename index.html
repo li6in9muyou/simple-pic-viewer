@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en" data-bs-theme="dark">
   <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta charset="UTF-8" />
     <title>Simple Pic Viewer</title>
     <link rel="stylesheet" href="css/bootstrap.css" />
@@ -69,6 +70,9 @@
   <script>
     const $hostInput = $("#host-input");
     $hostInput.val(state.host ?? "");
+    $hostInput.on("change", () => {
+      state.host = $hostInput.val().trim();
+    });
     const $spinner = $(".spinner-border");
     const $dirList = $("[data-dirs-list]");
     const $picList = $("[data-pics-list]");
@@ -105,16 +109,19 @@
       switch (state.current) {
         case START:
           $spinner.removeClass("d-none");
-          fetchDirs()
+          fetchDirs(state.host)
             .then((data) => {
               $dirList.html("");
+              const $tmp = $(document.createDocumentFragment());
               data.forEach((item) => {
-                $dirList.append(
+                console.log(`processing ${item}`);
+                $tmp.append(
                   $(
                     `<a href="${item.path}" class="list-group-item list-group-item-action">${item.path}</a>`,
                   ),
                 );
               });
+              $dirList.append($tmp);
               const $a = $dirList.children().eq(0);
               $a.addClass("active");
               state.dir = $a.attr("href");
@@ -131,7 +138,7 @@
             state.dir !== null,
             "dir page shifting right, but state.dir is null",
           );
-          fetchPics()
+          fetchPics(state.host, state.dir)
             .then((data) => {
               data.forEach((item) =>
                 $picList.append(
@@ -181,41 +188,17 @@
     /**
      * @returns {Promise<{path:string}[]>}
      */
-    function fetchDirs() {
-      return new Promise((resolve) => {
-        setTimeout(
-          () =>
-            resolve([
-              { path: "2024-02-09/" },
-              { path: "2024-02-08/" },
-              { path: "2024-02-07/" },
-            ]),
-          500,
-        );
-      });
-    }
-
-    const respText =
-      '<li><a href="21-14-30.663.jpeg">21-14-30.663.jpeg</a></li>\n' +
-      '<li><a href="21-15-11.649.jpeg">21-15-11.649.jpeg</a></li>\n' +
-      '<li><a href="21-15-52.647.jpeg">21-15-52.647.jpeg</a></li>\n' +
-      '<li><a href="21-16-33.640.jpeg">21-16-33.640.jpeg</a></li>\n' +
-      '<li><a href="21-17-14.633.jpeg">21-17-14.633.jpeg</a></li>\n' +
-      '<li><a href="21-17-55.668.jpeg">21-17-55.668.jpeg</a></li>';
-
-    function parseResp(text) {
-      return Array.from(text.matchAll(/href="([^"]+)"/g)).map((m) => ({
-        path: m[1],
-      }));
+    async function fetchDirs(baseUrl) {
+      const resp = await fetch(baseUrl);
+      return await resp.json();
     }
 
     /**
      * @returns {Promise<{path:string}[]>}
      */
-    function fetchPics() {
-      return new Promise((resolve) => {
-        setTimeout(() => resolve(parseResp(respText)), 500);
-      });
+    async function fetchPics(baseUrl, dir) {
+      const resp = await fetch(baseUrl + dir);
+      return await resp.json();
     }
   </script>
 </html>
