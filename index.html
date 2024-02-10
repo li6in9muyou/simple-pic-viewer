@@ -232,16 +232,22 @@
      * @returns {Promise<{path:string}[]>}
      */
     async function fetchDirs(baseUrl) {
-      const resp = await fetch(baseUrl);
-      return await resp.json();
+      return fetchDirsAndPics(baseUrl);
     }
 
     /**
      * @returns {Promise<{path:string}[]>}
      */
     async function fetchPics(baseUrl, dir) {
-      const resp = await fetch(baseUrl + dir);
-      return await resp.json();
+      return fetchDirsAndPics(baseUrl, dir);
+    }
+
+    async function fetchDirsAndPics(...parts) {
+      const url = parts.join("");
+      const resp = await fetch(url);
+      const list = await resp.json();
+      list.sort((a, b) => (a.path < b.path ? 1 : -1));
+      return list;
     }
   </script>
 </html>
