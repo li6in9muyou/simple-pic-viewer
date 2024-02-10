@@ -21,37 +21,50 @@
         width: 100vw;
       }
 
+      .panel > h2 {
+        padding-left: 0.5rem;
+      }
+
       nav {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        width: 100vw;
       }
 
       body {
+        position: relative;
         overflow-x: hidden;
+        height: 100vh;
       }
     </style>
   </head>
   <body>
-    <nav class="bg-body-tertiary container-fluid p-2 fixed-top">
+    <nav class="bg-body-tertiary p-2">
       <button class="btn btn-secondary" data-nav-left>向左</button>
       <div class="spinner-border d-none" role="status"></div>
       <button class="btn btn-primary" data-nav-right>向右</button>
     </nav>
     <main class="panels">
-      <section class="panel p-2">
+      <section class="panel">
         <div class="container text-center py-4">
           <label for="host-input">输入后端地址：</label>
           <input type="text" name="host-input" id="host-input" />
         </div>
       </section>
-      <section class="panel p-2">
+      <section class="panel d-flex flex-column">
         <h2>dirs page</h2>
-        <div class="list-group" data-dirs-list></div>
+        <div
+          class="list-group flex-grow-1 overflow-y-auto pe-2"
+          data-dirs-list
+        ></div>
       </section>
-      <section class="panel p-2">
+      <section class="panel d-flex flex-column">
         <h2>pics page</h2>
-        <div class="d-flex flex-column gap-1" data-pics-list></div>
+        <div
+          class="flex-grow-1 d-flex flex-column overflow-y-auto gap-1 pe-2"
+          data-pics-list
+        ></div>
       </section>
     </main>
   </body>
@@ -77,7 +90,8 @@
     const $dirList = $("[data-dirs-list]");
     const $picList = $("[data-pics-list]");
     const $panels = $(".panels");
-    $panels.css("padding-top", $("nav").outerHeight());
+    const $panelList = $(".panel");
+    $panelList.css("height", $("body").outerHeight() - $("nav").outerHeight());
     const PANEL_W = $panels.outerWidth() / 3;
 
     function panelShiftRight() {
@@ -114,7 +128,6 @@
               $dirList.html("");
               const $tmp = $(document.createDocumentFragment());
               data.forEach((item) => {
-                console.log(`processing ${item}`);
                 $tmp.append(
                   $(
                     `<a href="${item.path}" class="list-group-item list-group-item-action">${item.path}</a>`,
@@ -169,10 +182,12 @@
           state.current = START;
           state.dir = null;
           panelShiftLeft();
+          $dirList.html("");
           break;
         case PIC:
           state.current = DIR;
           panelShiftLeft();
+          $picList.html("");
           break;
         case START:
           // ignored
