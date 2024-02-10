@@ -47,9 +47,33 @@
     </nav>
     <main class="panels">
       <section class="panel">
-        <div class="container text-center py-4">
+        <div class="container py-4">
           <label for="host-input">输入后端地址：</label>
           <input type="text" name="host-input" id="host-input" />
+          <p class="pt-4 pb-2 mb-0">或从下面选择一个</p>
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="host"
+              id="host1"
+              value="http://localhost:13333/"
+              checked
+            />
+            <label class="form-check-label=" for="host1">localhost:13333</label>
+          </div>
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="host"
+              id="host2"
+              value="http://192.168.1.13:13333/"
+            />
+            <label class="form-check-label" for="host2">
+              192.168.1.13:13333
+            </label>
+          </div>
         </div>
       </section>
       <section class="panel d-flex flex-column">
@@ -93,6 +117,10 @@
     const $panelList = $(".panel");
     $panelList.css("height", $("body").outerHeight() - $("nav").outerHeight());
     const PANEL_W = $panels.outerWidth() / 3;
+    $("input[name=host]").on("change", (e) => {
+      $hostInput.val($(e.target).val());
+      state.host = $hostInput.val().trim();
+    });
 
     function panelShiftRight() {
       const current = parseInt($panels.css("left")) || 0;
