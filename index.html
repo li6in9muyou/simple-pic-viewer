@@ -37,12 +37,17 @@
         overflow-x: hidden;
         height: 100vh;
       }
+
+      nav > h2 {
+        margin-bottom: 0;
+      }
     </style>
   </head>
   <body>
     <nav class="bg-body-tertiary p-2">
       <button class="btn btn-secondary" data-nav-left>向左</button>
       <div class="spinner-border d-none" role="status"></div>
+      <h2>加载中……</h2>
       <button class="btn btn-primary" data-nav-right>向右</button>
     </nav>
     <main class="panels">
@@ -77,14 +82,12 @@
         </div>
       </section>
       <section class="panel d-flex flex-column">
-        <h2>dirs page</h2>
         <div
           class="list-group flex-grow-1 overflow-y-auto pe-2"
           data-dirs-list
         ></div>
       </section>
       <section class="panel d-flex flex-column">
-        <h2>pics page</h2>
         <div
           class="flex-grow-1 d-flex flex-column overflow-y-auto gap-1 pe-2"
           data-pics-list
@@ -97,11 +100,24 @@
     const START = "START";
     const DIR = "DIR";
     const PIC = "PIC";
-    const state = {
-      host: "http://localhost:13333/",
-      dir: null,
-      current: START,
-    };
+    const state = new Proxy(
+      {
+        host: "http://localhost:13333/",
+        dir: null,
+        current: START,
+      },
+      {
+        set(s, key, value) {
+          s[key] = value;
+
+          if (key === "current") {
+            updatePageName();
+          }
+
+          return true;
+        },
+      },
+    );
   </script>
 
   <script>
@@ -225,6 +241,28 @@
           break;
       }
     });
+
+    $pageName = $("nav>h2");
+    function updatePageName() {
+      let page;
+      switch (state.current) {
+        case DIR:
+          page = "选择目录";
+          break;
+        case PIC:
+          page = "看图";
+          break;
+        case START:
+          page = "开始";
+          break;
+        default:
+          console.warn(`unhandled shift right ${state.current}`);
+          page = "出错了";
+          break;
+      }
+      $pageName.text(page);
+    }
+    updatePageName();
   </script>
 
   <script>
