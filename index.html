@@ -156,7 +156,8 @@
     }
   </script>
 
-  <script>
+  <script type="module">
+    import { fetchDirs, fetchPics } from "./js/backend.mock.js";
     $dirList.on("click", (e) => {
       e.preventDefault();
       const $link = $(e.target);
