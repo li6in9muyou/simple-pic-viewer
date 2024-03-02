@@ -132,6 +132,7 @@
     const $picList = $("[data-pics-list]");
     const $panels = $(".panels");
     const $panelList = $(".panel");
+    const $pageName = $("nav>h2");
     $panelList.css("height", $("body").outerHeight() - $("nav").outerHeight());
     const PANEL_W = $panels.outerWidth() / 3;
     $("input[name=host]").on("change", (e) => {
@@ -153,6 +154,26 @@
         return;
       }
       $panels.css("left", `${current + PANEL_W}px`);
+    }
+
+    function updatePageName() {
+      let page;
+      switch (state.current) {
+        case DIR:
+          page = "选择目录";
+          break;
+        case PIC:
+          page = "看图";
+          break;
+        case START:
+          page = "开始";
+          break;
+        default:
+          console.warn(`unhandled shift right ${state.current}`);
+          page = "出错了";
+          break;
+      }
+      $pageName.text(page);
     }
   </script>
 
@@ -244,26 +265,6 @@
       }
     });
 
-    const $pageName = $("nav>h2");
-    function updatePageName() {
-      let page;
-      switch (state.current) {
-        case DIR:
-          page = "选择目录";
-          break;
-        case PIC:
-          page = "看图";
-          break;
-        case START:
-          page = "开始";
-          break;
-        default:
-          console.warn(`unhandled shift right ${state.current}`);
-          page = "出错了";
-          break;
-      }
-      $pageName.text(page);
-    }
     updatePageName();
   </script>
 </html>
